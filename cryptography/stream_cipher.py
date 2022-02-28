@@ -13,6 +13,7 @@ allora per i bit eccedenti lo XOR è operato solamente tra i feedback bit dei 3 
 """
 
 from abc import ABC, abstractmethod
+import os
 import re
 from typing import Dict, List, Optional, Union
 import random
@@ -369,7 +370,7 @@ if __name__ == "__main__":
     # )
     # print(f"The state after the update of the LSFR is: \n{lsfr.state}\n ")
     # print(f"The states along time of the LSFR are: \n{lsfr.states_in_time}\n ")
-
+    os.system("cls")
     print("\033[1mA5/1 implementation\033[0m\n")
     a5_1 = A5_1()
 

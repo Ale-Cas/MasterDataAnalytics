@@ -2,6 +2,7 @@
 @author: Alessio Castrica
 @date: 28/02/2022
 """
+import os
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple
 
@@ -110,7 +111,9 @@ class AES(BlockCipher):
         pass
 
     def shift_row(self) -> None:
-        pass
+        for r in range(len(self.state)):
+            self.state[r] = np.roll(np.array(self.state[r]), r)
+        return self.state
 
     def mix_columns(self) -> None:
         pass
@@ -131,6 +134,13 @@ class AES(BlockCipher):
 
 
 if __name__ == "__main__":
+    print(os.getcwd())
+    substitution_lookup_table = np.genfromtxt(
+        "cryptography\AESSubstitutionLookUpTable.csv",
+        delimiter=",",
+    )
+    print("Substitution Lookup Table")
+    print(substitution_lookup_table)
     aes = AES()
     print(f"AES key size: {aes.key_size}")
     print("Key Schedule:\n")

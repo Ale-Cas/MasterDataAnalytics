@@ -1,0 +1,15 @@
+name: masterdata
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - ipykernel
+  - numpy
+  - pandas
+  - matplotlib
+  - scipy
+  - scikit-learn
+  - black
+  - mypy
+prefix:
+  - /Users/alcastrica/miniforge3/envs/masterdata

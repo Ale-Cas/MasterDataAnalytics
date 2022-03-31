@@ -11,5 +11,6 @@ dependencies:
   - scikit-learn
   - black
   - mypy
+  - igraph
 prefix:
   - /Users/alcastrica/miniforge3/envs/masterdata

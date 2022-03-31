@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
+import scipy
 
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
 
 
 class NaiveBayesClassifier:
@@ -10,14 +12,20 @@ class NaiveBayesClassifier:
     Class to represent a Naive Bayes Classifier.
     """
 
-    def __init__(self, train_features: pd.DataFrame, train_labels: pd.Series) -> None:
-        self.train_features = train_features
-        self.train_labels = train_labels
-        self.train_dataset = pd.concat([self.train_features, self.train_labels], axis=1)
+    def __init__(self, dataset: pd.DataFrame, test_size: float = 0.2) -> None:
+        train_data, test_data = train_test_split(dataset, test_size=test_size)
+        self.train_features = train_data.iloc[:, :-1]
+        self.train_labels = train_data.iloc[:, -1]
+        self.test_features = test_data.iloc[:, :-1]
+        self.test_labels = test_data.iloc[:, -1]
 
     @property
     def n_train_samples(self) -> int:
         return len(self.train_features.index)
+
+    @property
+    def n_test_samples(self) -> int:
+        return len(self.test_features.index)
 
     @property
     def features(self) -> pd.Index:
@@ -31,6 +39,7 @@ class NaiveBayesClassifier:
     def prior(self) -> pd.DataFrame:
         """
         Method to calculate the prior probability associated to each label.
+        It takes into consideration only the TRAIN labels.
 
         Returns
         -------
@@ -39,20 +48,25 @@ class NaiveBayesClassifier:
         """
         _prior = pd.DataFrame(columns=self.labels.tolist())
         for label in self.labels:
-            _prior[label] = len(self.train_labels[self.train_labels == label]) / len(
-                self.train_labels
+            _prior[label] = pd.Series(
+                len(self.train_labels[self.train_labels == label])
+                / len(self.train_labels)
             )
         return _prior
 
-    def likelihood(self):
-        def gaussian_pdf(x: pd.Series, mu: float, sigma_squared: float) -> pd.Series:
-            p: pd.Series = (1 / np.sqrt(2 * np.pi * sigma_squared)) * np.exp(
-                -((x - mu) ** 2) / (2 * sigma_squared)
-            )
-            p.name = "gaussian probability distribution"
-            return p
+    def likelihood(self) -> pd.DataFrame:
+        # def gaussian_pdf(x: float, mu: float, sigma_squared: float) -> pd.Series:
+        #     numerator = np.exp(-((x - mu) ** 2) / (2 * sigma_squared))
+        #     denominator = np.sqrt(2 * np.pi * sigma_squared)
+        #     pdf = numerator / denominator
+        #     return pdf
 
-        _likelihood = dict((label, 1) for label in self.labels)
+        _likelihood = pd.DataFrame(
+            data=np.ones(
+                shape=(len(self.test_features.index), len(self.labels.tolist()))
+            ),
+            columns=self.labels.tolist(),
+        )
         _mean = pd.DataFrame(columns=self.labels.tolist())
         _variance = pd.DataFrame(columns=self.labels.tolist())
         for label in self.labels:
@@ -60,19 +74,22 @@ class NaiveBayesClassifier:
             _mean[label] = _features_per_label.mean()
             _variance[label] = _features_per_label.var()
             for feature in self.features:
-                _likelihood[label] *= gaussian_pdf(
-                    _features_per_label[feature],
-                    _mean[label][feature],
-                    _variance[label][feature],
-                )
-
+                # _likelihood[label] *= gaussian_pdf(
+                #     self.test_features[feature],
+                #     _mean[label][feature],
+                #     _variance[label][feature],
+                # )
+                _likelihood[label] *= scipy.stats.norm(
+                    _mean[label][feature], _variance[label][feature]
+                ).pdf(self.test_features[feature])
+        assert not _likelihood.empty
         return _likelihood
 
     @property
-    def normalization(self):
+    def normalization(self) -> pd.Series:
         _norm = 0
         for label in self.labels:
-            _norm += self.likelihood()[label] * self.prior[label]
+            _norm += self.likelihood()[label] * self.prior[label].values
         return _norm
 
     @property
@@ -88,17 +105,24 @@ class NaiveBayesClassifier:
         _posterior = pd.DataFrame(columns=self.labels.tolist())
         for label in self.labels:
             _posterior[label] = (
-                self.prior[label] * self.likelihood() / self.normalization
+                self.prior[label].values * self.likelihood()[label] / self.normalization
             )
+        return _posterior
 
-    def predict(
-        self,
-        test_features: pd.DataFrame,
-    ):
-        pass
+    def prediction(self) -> pd.Series:
+        pred = self.posterior.apply(np.argmax, axis=1)
+        return pred
 
-    def print_accuracy(self, test_labels: pd.Series):
-        pass
+    def print_accuracy(self) -> None:
+        my_accuracy_score = accuracy_score(
+            self.test_labels, self.prediction(), normalize=True
+        )
+        # my_confusion_matrix = confusion_matrix(self.test_labels, self.prediction())
+        my_f1_score = f1_score(self.test_labels, self.prediction())
+
+        print("{0:<15} {1:>15}".format("my accuracy", my_accuracy_score))
+        print("{0:<15} {1:>15}".format("my f1", my_f1_score))
+        # print("my confusion matrix: \n", my_confusion_matrix)
 
 
 if __name__ == "__main__":
@@ -106,18 +130,16 @@ if __name__ == "__main__":
     all_features = pd.DataFrame(data=cancer.data, columns=cancer.feature_names)
     all_target = pd.Series(cancer.target, name="diagnosis")
     dataset = pd.concat([all_features.iloc[:, 0:4], all_target], axis=1)
-    train_data, test_data = train_test_split(dataset, test_size=0.2, random_state=41)
-    train_features = train_data.iloc[:, :-1]
-    train_target = train_data.iloc[:, -1]
-    test_features = test_data.iloc[:, :-1]
-    test_target = test_data.iloc[:, -1]
 
-    nbc = NaiveBayesClassifier(train_features=train_features, train_labels=train_target)
+    bayes = NaiveBayesClassifier(dataset=dataset)
     print("Prior:")
-    print(nbc.prior)
+    print(bayes.prior)
     print("Likelihood:")
-    print(nbc.likelihood())
+    print(bayes.likelihood())
     print("Normalization:")
-    print(nbc.normalization)
+    print(bayes.normalization)
     print("Posterior:")
-    print(nbc.posterior)
+    print(bayes.posterior)
+    print("Prediction:")
+    print(bayes.prediction())
+    bayes.print_accuracy()

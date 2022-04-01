@@ -13,6 +13,8 @@ class NaiveBayesClassifier:
     """
 
     def __init__(self, dataset: pd.DataFrame, test_size: float = 0.2) -> None:
+        if not isinstance(dataset, pd.DataFrame):
+            raise ValueError("The dataset must be a pandas DataFrame.")
         train_data, test_data = train_test_split(dataset, test_size=test_size)
         self.train_features = train_data.iloc[:, :-1]
         self.train_labels = train_data.iloc[:, -1]

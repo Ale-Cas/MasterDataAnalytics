@@ -13,14 +13,26 @@ class NaiveBayesClassifier:
     """
 
     def __init__(self, dataset: pd.DataFrame, test_size: float = 0.2) -> None:
+        """
+        Initialization of the Naive Bayes Classifier instance.
+        Input validation and train-test split.
+
+        Parameters
+        ----------
+        dataset : pd.DataFrame
+
+        test_size: float
+            default = 0.2
+            must be between 0.0 and 1.0
+        """
         if not isinstance(dataset, pd.DataFrame):
             raise ValueError("The dataset must be a pandas DataFrame.")
         if not isinstance(test_size, float):
             raise ValueError("The test_size must be a floating number")
-            if test_size < 0.0:
-                raise ValueError("The test_size must be greater than 0.")
-            if test_size < 1.0:
-                raise ValueError("The test_size must be less than 1.")
+        if test_size < 0.0:
+            raise ValueError("The test_size must be greater than 0.")
+        if test_size < 1.0:
+            raise ValueError("The test_size must be less than 1.")
         train_data, test_data = train_test_split(
             dataset, test_size=test_size, random_state=41
         )

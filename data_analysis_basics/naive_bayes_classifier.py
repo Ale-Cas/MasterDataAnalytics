@@ -31,7 +31,7 @@ class NaiveBayesClassifier:
             raise ValueError("The test_size must be a floating number")
         if test_size < 0.0:
             raise ValueError("The test_size must be greater than 0.")
-        if test_size < 1.0:
+        if test_size > 1.0:
             raise ValueError("The test_size must be less than 1.")
         train_data, test_data = train_test_split(
             dataset, test_size=test_size, random_state=41
@@ -55,7 +55,7 @@ class NaiveBayesClassifier:
 
     @property
     def labels(self) -> np.ndarray:
-        return self.train_labels.unique()
+        return sorted(self.train_labels.unique())
 
     @property
     def prior(self) -> pd.DataFrame:
@@ -68,7 +68,7 @@ class NaiveBayesClassifier:
         priors: pd.DataFrame
             A dataframe where each label is mapped to its prior.
         """
-        _prior = pd.DataFrame(columns=self.labels.tolist())
+        _prior = pd.DataFrame(columns=self.labels)
         for label in self.labels:
             _prior[label] = pd.Series(
                 len(self.train_labels[self.train_labels == label])
@@ -91,13 +91,11 @@ class NaiveBayesClassifier:
         #     return pdf
 
         _likelihood = pd.DataFrame(
-            data=np.ones(
-                shape=(len(self.test_features.index), len(self.labels.tolist()))
-            ),
-            columns=self.labels.tolist(),
+            data=np.ones(shape=(len(self.test_features.index), len(self.labels))),
+            columns=self.labels,
         )
-        _mean = pd.DataFrame(columns=self.labels.tolist())
-        _variance = pd.DataFrame(columns=self.labels.tolist())
+        _mean = pd.DataFrame(columns=self.labels)
+        _variance = pd.DataFrame(columns=self.labels)
         for label in self.labels:
             _features_per_label = self.train_features[label == self.train_labels]
             _mean[label] = _features_per_label.mean()
@@ -131,7 +129,7 @@ class NaiveBayesClassifier:
         posteriors: pd.DataFrame
             A series where each label is mapped to its posterior.
         """
-        _posterior = pd.DataFrame(columns=self.labels.tolist())
+        _posterior = pd.DataFrame(columns=self.labels)
         for label in self.labels:
             _posterior[label] = (
                 self.prior[label].values * self.likelihood()[label] / self.normalization
@@ -163,12 +161,16 @@ if __name__ == "__main__":
     bayes = NaiveBayesClassifier(dataset=dataset)
     print("Prior:")
     print(bayes.prior)
+    print("-------------------------------------")
     print("Likelihood:")
     print(bayes.likelihood())
+    print("-------------------------------------")
     print("Normalization:")
     print(bayes.normalization)
+    print("-------------------------------------")
     print("Posterior:")
     print(bayes.posterior)
+    print("-------------------------------------")
     print("Prediction:")
     print(bayes.prediction())
     bayes.print_accuracy()

@@ -144,12 +144,12 @@ class NaiveBayesClassifier:
         my_accuracy_score = accuracy_score(
             self.test_labels, self.prediction(), normalize=True
         )
-        # my_confusion_matrix = confusion_matrix(self.test_labels, self.prediction())
+        my_confusion_matrix = confusion_matrix(self.test_labels, self.prediction())
         my_f1_score = f1_score(self.test_labels, self.prediction())
 
         print("{0:<15} {1:>15}".format("my accuracy", my_accuracy_score))
         print("{0:<15} {1:>15}".format("my f1", my_f1_score))
-        # print("my confusion matrix: \n", my_confusion_matrix)
+        print("my confusion matrix: \n", my_confusion_matrix)
 
 
 if __name__ == "__main__":

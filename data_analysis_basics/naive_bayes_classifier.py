@@ -84,8 +84,10 @@ class NaiveBayesClassifier:
         -------
         A pandas DataFrame with a probability for each label and each test observation.
         """
+
         # def gaussian_pdf(x: float, mu: float, sigma_squared: float) -> pd.Series:
-        #     numerator = np.exp(-((x - mu) ** 2) / (2 * sigma_squared))
+        #     sigma = np.sqrt(sigma_squared)
+        #     numerator = np.exp(-(((x - mu) / sigma) ** 2) * 0.5)
         #     denominator = np.sqrt(2 * np.pi * sigma_squared)
         #     pdf = numerator / denominator
         #     return pdf

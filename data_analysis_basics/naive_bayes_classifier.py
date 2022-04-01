@@ -57,6 +57,13 @@ class NaiveBayesClassifier:
         return _prior
 
     def likelihood(self) -> pd.DataFrame:
+        """
+        Method to calculate the likelihood.
+
+        Returns
+        -------
+        A pandas DataFrame with a probability for each label and each test observation.
+        """
         # def gaussian_pdf(x: float, mu: float, sigma_squared: float) -> pd.Series:
         #     numerator = np.exp(-((x - mu) ** 2) / (2 * sigma_squared))
         #     denominator = np.sqrt(2 * np.pi * sigma_squared)

@@ -6,6 +6,8 @@ from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
 
+import matplotlib.pyplot as plt
+
 
 class NaiveBayesClassifier:
     """
@@ -36,10 +38,22 @@ class NaiveBayesClassifier:
         train_data, test_data = train_test_split(
             dataset, test_size=test_size, random_state=41
         )
-        self.train_features = train_data.iloc[:, :-1]
-        self.train_labels = train_data.iloc[:, -1]
-        self.test_features = test_data.iloc[:, :-1]
-        self.test_labels = test_data.iloc[:, -1]
+        self.train_features: pd.DataFrame = train_data.iloc[:, :-1]
+        self.train_labels: pd.Series = train_data.iloc[:, -1]
+        self.test_features: pd.DataFrame = test_data.iloc[:, :-1]
+        self.test_labels: pd.Series = test_data.iloc[:, -1]
+
+    def plot_features_histograms(self) -> None:
+        def draw_histograms(df, variables, n_rows, n_cols):
+            fig = plt.figure()
+            for i, var_name in enumerate(variables):
+                ax = fig.add_subplot(n_rows, n_cols, i + 1)
+                df[var_name].hist(bins=10, ax=ax)
+                ax.set_title("Distribution of " + var_name)
+            fig.tight_layout()  # Improves appearance a bit.
+            plt.show()
+
+        draw_histograms(self.train_features, self.features, 2, 2)
 
     @property
     def n_train_samples(self) -> int:
@@ -161,6 +175,7 @@ if __name__ == "__main__":
     dataset = pd.concat([all_features.iloc[:, 0:4], all_target], axis=1)
 
     bayes = NaiveBayesClassifier(dataset=dataset)
+    bayes.plot_features_histograms()
     print("Prior:")
     print(bayes.prior)
     print("-------------------------------------")

@@ -44,7 +44,7 @@ class NaiveBayesClassifier:
         self.test_labels: pd.Series = test_data.iloc[:, -1]
 
     def plot_features_histograms(self) -> None:
-        def draw_histograms(df, variables, n_rows, n_cols):
+        def draw_histograms(df, variables, n_rows: int = 1, n_cols: int = 1):
             fig = plt.figure()
             for i, var_name in enumerate(variables):
                 ax = fig.add_subplot(n_rows, n_cols, i + 1)
@@ -53,7 +53,7 @@ class NaiveBayesClassifier:
             fig.tight_layout()  # Improves appearance a bit.
             plt.show()
 
-        draw_histograms(self.train_features, self.features, 2, 2)
+        draw_histograms(self.train_features, self.features, len(self.features), 1)
 
     @property
     def n_train_samples(self) -> int:
@@ -171,10 +171,13 @@ class NaiveBayesClassifier:
 if __name__ == "__main__":
     cancer = load_breast_cancer()
     all_features = pd.DataFrame(data=cancer.data, columns=cancer.feature_names)
-    all_target = pd.Series(cancer.target, name="diagnosis")
-    dataset = pd.concat([all_features.iloc[:, 0:4], all_target], axis=1)
+    diagnosis = pd.Series(cancer.target, name="diagnosis")
+    sel_features = ["mean radius", "mean texture", "mean smoothness"]
+    dataset = pd.concat([all_features.loc[:, sel_features], diagnosis], axis=1)
 
     bayes = NaiveBayesClassifier(dataset=dataset)
+    print("Data:")
+    print(dataset)
     bayes.plot_features_histograms()
     print("Prior:")
     print(bayes.prior)

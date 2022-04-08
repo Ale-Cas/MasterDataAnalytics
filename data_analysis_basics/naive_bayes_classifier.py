@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import scipy
 
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
@@ -35,13 +34,13 @@ class NaiveBayesClassifier:
             raise ValueError("The test_size must be greater than 0.")
         if test_size > 1.0:
             raise ValueError("The test_size must be less than 1.")
-        train_data, test_data = train_test_split(
+        self.train_data, self.test_data = train_test_split(
             dataset, test_size=test_size, random_state=41
         )
-        self.train_features: pd.DataFrame = train_data.iloc[:, :-1]
-        self.train_labels: pd.Series = train_data.iloc[:, -1]
-        self.test_features: pd.DataFrame = test_data.iloc[:, :-1]
-        self.test_labels: pd.Series = test_data.iloc[:, -1]
+        self.train_features: pd.DataFrame = self.train_data.iloc[:, :-1]
+        self.train_labels: pd.Series = self.train_data.iloc[:, -1]
+        self.test_features: pd.DataFrame = self.test_data.iloc[:, :-1]
+        self.test_labels: pd.Series = self.test_data.iloc[:, -1]
 
     def plot_features_histograms(self) -> None:
         def draw_histograms(df, variables, n_rows: int = 1, n_cols: int = 1):
@@ -99,32 +98,29 @@ class NaiveBayesClassifier:
         A pandas DataFrame with a probability for each label and each test observation.
         """
 
-        # def gaussian_pdf(x: float, mu: float, sigma_squared: float) -> pd.Series:
-        #     sigma = np.sqrt(sigma_squared)
-        #     numerator = np.exp(-(((x - mu) / sigma) ** 2) * 0.5)
-        #     denominator = np.sqrt(2 * np.pi * sigma_squared)
-        #     pdf = numerator / denominator
-        #     return pdf
+        def gaussian_pdf(x: float, mu: float, sigma: float) -> pd.Series:
+            numerator = np.exp(-(((x - mu) / sigma) ** 2) * 0.5)
+            denominator = np.sqrt(2 * np.pi) * sigma
+            pdf = numerator / denominator
+            return pdf
 
         _likelihood = pd.DataFrame(
             data=np.ones(shape=(len(self.test_features.index), len(self.labels))),
             columns=self.labels,
         )
         _mean = pd.DataFrame(columns=self.labels)
-        _variance = pd.DataFrame(columns=self.labels)
+        _std_dev = pd.DataFrame(columns=self.labels)
         for label in self.labels:
             _features_per_label = self.train_features[label == self.train_labels]
             _mean[label] = _features_per_label.mean()
-            _variance[label] = _features_per_label.var()
+            _std_dev[label] = _features_per_label.std()
             for feature in self.features:
-                # _likelihood[label] *= gaussian_pdf(
-                #     self.test_features[feature],
-                #     _mean[label][feature],
-                #     _variance[label][feature],
-                # )
-                _likelihood[label] *= scipy.stats.norm(
-                    _mean[label][feature], _variance[label][feature]
-                ).pdf(self.test_features[feature])
+                for idx in range(len(self.test_features)):
+                    _likelihood.iloc[idx][label] *= gaussian_pdf(
+                        x=self.test_features.iloc[idx][feature],
+                        mu=_mean[label][feature],
+                        sigma=_std_dev[label][feature],
+                    )
         assert not _likelihood.empty
         return _likelihood
 

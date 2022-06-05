@@ -12,5 +12,6 @@ dependencies:
   - black
   - mypy
   - igraph
+  - requests
 prefix:
   - /Users/alcastrica/miniforge3/envs/masterdata

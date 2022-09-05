@@ -1,9 +1,11 @@
-name: masterdata
+name: master-data-analytics
 channels:
   - conda-forge
   - defaults
 dependencies:
+  - conda-build
   - ipykernel
+  - jupyter
   - numpy
   - pandas
   - matplotlib
@@ -13,5 +15,5 @@ dependencies:
   - mypy
   - igraph
   - requests
-prefix:
-  - /Users/alcastrica/miniforge3/envs/masterdata
+  - nltk
+  - pytest
